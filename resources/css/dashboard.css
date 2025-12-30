@@ -1,0 +1,617 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@500;700;800&display=swap");
+
+:root {
+    /* --- COLOR PALETTE (Cyberpunk/IoT Theme) --- */
+    --bg-body: #0b1121; /* Sangat gelap */
+    --bg-card: rgba(30, 41, 59, 0.7); /* Semi transparan */
+    --bg-card-border: rgba(255, 255, 255, 0.1);
+
+    --primary: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.5);
+
+    --success: #06b6d4; /* Cyan/Teal neon */
+    --success-glow: rgba(6, 182, 212, 0.5);
+
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --danger-glow: rgba(239, 68, 68, 0.6);
+
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-body);
+    /* Background Image Halus */
+    background-image: radial-gradient(
+            at 0% 0%,
+            rgba(59, 130, 246, 0.15) 0px,
+            transparent 50%
+        ),
+        radial-gradient(
+            at 100% 100%,
+            rgba(239, 68, 68, 0.1) 0px,
+            transparent 50%
+        );
+    background-attachment: fixed;
+    font-family: "Inter", sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 30px;
+}
+
+/* --- ANIMATED BACKGROUND --- */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+.particle {
+    position: absolute;
+    bottom: -10px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: rise 20s infinite ease-in;
+}
+@keyframes rise {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: translateY(-120vh) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* --- LAYOUT CONTAINER --- */
+.main-card {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* --- HEADER --- */
+.header-title {
+    font-family: "Outfit", sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.header-title i {
+    -webkit-text-fill-color: var(--primary);
+    filter: drop-shadow(0 0 10px var(--primary-glow));
+}
+
+/* --- INFO CARDS (Top Row) --- */
+.info-cards-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 Kolom Rata */
+    gap: 24px;
+}
+
+.info-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, border-color 0.3s;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Garis aksen di atas kartu */
+.info-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--primary),
+        transparent
+    );
+    opacity: 0.5;
+}
+
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.info-label {
+    font-family: "Outfit", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.info-icon {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--primary);
+    box-shadow: 0 0 15px var(--primary-glow) inset;
+}
+
+.info-value {
+    font-family: "Outfit", sans-serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.info-value small {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 5px;
+}
+
+/* --- CONTENT GRID (Layout Utama) --- */
+.content-wrapper {
+    display: grid;
+    /* Kolom kiri 1.4 bagian, Kanan 1 bagian */
+    grid-template-columns: 1.4fr 1fr;
+    gap: 24px;
+    /* Agar tinggi kedua kolom sama persis */
+    align-items: stretch;
+}
+
+/* Wrapper Kiri (Gas + Kontrol) */
+.left-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100%;
+}
+
+/* Wrapper Kanan (CCTV) - Flex agar mengisi tinggi penuh */
+.right-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* --- SECTION CARDS --- */
+.section-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 24px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Khusus Kartu Kanan agar memanjang ke bawah mengisi ruang sisa */
+.right-section .section-card {
+    flex: 1;
+}
+
+.section-header {
+    font-family: "Outfit", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* --- MAP AREA (GAS) --- */
+.gas-map-section {
+    flex: 0 0 auto; /* Tinggi sesuai konten */
+}
+
+.gas-map-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.area-block {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.area-title {
+    font-family: "Outfit", sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.sensor-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    transition: 0.3s;
+}
+.sensor-box span {
+    display: block;
+    font-weight: 800;
+    font-size: 1.3rem;
+    margin-bottom: 2px;
+}
+.sensor-box small {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+/* Sensor Status Colors */
+.sensor-box.safe {
+    border-color: rgba(6, 182, 212, 0.3);
+    color: var(--success);
+    background: radial-gradient(
+        circle,
+        rgba(6, 182, 212, 0.1) 0%,
+        transparent 70%
+    );
+}
+.sensor-box.warning {
+    border-color: var(--warning);
+    color: var(--warning);
+    background: radial-gradient(
+        circle,
+        rgba(245, 158, 11, 0.1) 0%,
+        transparent 70%
+    );
+}
+.sensor-box.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+    box-shadow: 0 0 15px var(--danger-glow);
+    animation: pulse-danger 1.5s infinite;
+}
+
+@keyframes pulse-danger {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.gas-alert-box {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid var(--danger);
+    border-radius: 12px;
+    color: #fca5a5;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+}
+
+/* --- DEVICE CONTROLS --- */
+.device-section {
+    flex: 1; /* Mengisi sisa ruang di kolom kiri */
+}
+
+.device-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    height: 100%; /* Agar tombol mengisi area penuh */
+}
+
+.device-btn {
+    width: 100%;
+    height: 100%; /* Full height */
+    min-height: 140px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.device-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-3px);
+}
+
+.device-btn .icon-wrapper {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+    transition: 0.3s;
+}
+.device-btn .device-label {
+    font-family: "Outfit", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+}
+.device-btn .device-status {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Active State */
+.device-btn.on {
+    background: linear-gradient(
+        145deg,
+        rgba(59, 130, 246, 0.2),
+        rgba(59, 130, 246, 0.05)
+    );
+    border: 1px solid var(--primary);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    color: white;
+}
+.device-btn.on .icon-wrapper {
+    color: var(--primary);
+    text-shadow: 0 0 15px var(--primary);
+}
+.device-btn.on .device-status {
+    background: var(--primary);
+    color: white;
+}
+
+/* --- CCTV SECTION --- */
+/* CCTV mengisi ruang vertikal agar sejajar dengan kiri */
+.camera-feed-container {
+    width: 100%;
+    flex: 1; /* Ambil semua sisa ruang vertikal */
+    min-height: 300px;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.camera-feed-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* PTZ Container ditempatkan di bawah video */
+.ptz-wrapper {
+    margin-top: auto; /* Push ke bawah */
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.ptz-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 50%; /* Membuat base controller bulat */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ptz-btn {
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: 0.2s;
+}
+
+.ptz-btn:hover {
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+.ptz-btn.reset {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    border-radius: 50%;
+}
+.ptz-btn.reset:hover {
+    background: var(--danger);
+    color: white;
+    box-shadow: 0 0 10px var(--danger-glow);
+}
+
+/* --- FIRE OVERLAY --- */
+.fire-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(239, 68, 68, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    animation: flash 1s infinite;
+}
+@keyframes flash {
+    0%,
+    100% {
+        background: rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        background: rgba(239, 68, 68, 0.1);
+    }
+}
+.fire-box {
+    background: #000;
+    color: var(--danger);
+    padding: 20px 40px;
+    border: 2px solid var(--danger);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 30px var(--danger);
+}
+.fire-box h3 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+/* --- MODAL / POP UP STYLING (Cyberpunk Theme) --- */
+.modal-content {
+    /* Gunakan variabel background yang sama tapi lebih gelap sedikit agar tulisan terbaca */
+    background: rgba(11, 17, 33, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--bg-card-border) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 15px var(--primary-glow) !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.modal-title {
+    font-family: "Outfit", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.btn-close {
+    /* Mengubah tombol silang (x) menjadi putih */
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Tab Navigasi (Manual/Otomatis) */
+.nav-pills .nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary) !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* Input Form di dalam Modal */
+.modal-body input.form-control {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-radius: 10px;
+}
+
+.modal-body input.form-control:focus {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 10px var(--primary-glow) !important;
+}
+
+/* Label Input */
+.modal-body label {
+    font-family: "Outfit", sans-serif;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1200px) {
+    .content-wrapper {
+        grid-template-columns: 1fr; /* Stack satu kolom */
+    }
+    .info-cards-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .camera-feed-container {
+        height: 400px; /* Fix height jika di mobile */
+    }
+}
+
+@media (max-width: 600px) {
+    .info-cards-row {
+        grid-template-columns: 1fr;
+    }
+    .gas-map-container {
+        grid-template-columns: 1fr;
+    }
+    .device-controls {
+        grid-template-columns: 1fr;
+    }
+}
