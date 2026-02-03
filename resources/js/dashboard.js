@@ -37,7 +37,7 @@ $(document).ready(function () {
         } else if (topic === "kandang/sensor/pln") {
             updatePlnStatus(payload); // payload: "ON" / "OFF"
         } else if (topic === "kandang/sensor/fire") {
-            updateFireStatus(payload); // payload: "1" (detected) or "0"
+            updateFireStatus(payload);
         }
 
         // -- Handle Gas Sensors --
