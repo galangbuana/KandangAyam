@@ -100,7 +100,7 @@
                         <i class="fas fa-sliders-h text-primary"></i> Kontrol Perangkat
                     </div>
                     <div class="device-controls">
-                        <button class="device-btn" id="btn-lamp" onclick="openControlModal('lamp', 'Lampu Utama')">
+                        <button class="device-btn" id="btn-lampu" onclick="openControlModal('lampu', 'Lampu Utama')">
                             <div class="icon-wrapper"><i class="fas fa-lightbulb"></i></div>
                             <span class="device-label">Lampu Utama</span>
                             <span class="device-status">OFF</span>
@@ -128,7 +128,7 @@
                     </div>
 
                     <div class="camera-feed-container">
-                        <img src="http://10.174.84.8:5050/video_feed" alt="CCTV Feed" id="cctv-image"
+                        <img src="http://10.146.45.8:5050/video_feed" alt="CCTV Feed" id="cctv-image"
                             class="img-fluid rounded mb-4" style="width: 100%; max-width: 480px; border-radius: 12px;" />
 
                         {{-- <div id="fire-overlay" class="fire-overlay" style="display: none;">

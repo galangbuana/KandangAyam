@@ -4,7 +4,7 @@ $(document).ready(function () {
     // --- 1. MQTT CONFIGURATION ---
     // Contoh di dashboard.js
     // Menggunakan IP lokal Anda (192.168.1.6) dengan port WebSocket (biasanya 9001)
-    const mqttClient = mqtt.connect("ws://192.168.1.6:1884/mqtt", {
+    const mqttClient = mqtt.connect("ws://10.146.45.75:1884/mqtt", {
         // Jika Anda pakai username/password di Mosquitto lokal
         username: "galang",
         password: "galang12",
@@ -14,35 +14,36 @@ $(document).ready(function () {
         console.log("Connected to MQTT Broker");
 
         // Subscribe topics
-        mqttClient.subscribe("kandang/sensor/temp");
-        mqttClient.subscribe("kandang/sensor/humidity");
-        mqttClient.subscribe("kandang/sensor/fire");
-        mqttClient.subscribe("kandang/sensor/pln");
+        mqttClient.subscribe("sensor/suhu");
+        mqttClient.subscribe("sensor/kelembaban");
+        mqttClient.subscribe("detection/flame");
+        mqttClient.subscribe("status/listrik");
 
-        // Subscribe 8 gas sensors (Format: kandang/sensor/gas/areaX/sensorY)
-        mqttClient.subscribe("kandang/sensor/gas/#");
+        // Subscribe 8 gas sensors (Format: sensor/gas/areaX/sensorY)
+        mqttClient.subscribe("sensor/gas/#");
 
         // Subscribe status devices untuk sync UI jika diubah fisik
-        mqttClient.subscribe("kandang/status/device/#");
+        mqttClient.subscribe("status/device/#");
     });
 
     mqttClient.on("message", function (topic, message) {
         const payload = message.toString();
 
         // -- Handle Header Sensors --
-        if (topic === "kandang/sensor/temp") {
+        if (topic === "sensor/suhu") {
             $("#val-temp").text(payload);
-        } else if (topic === "kandang/sensor/humidity") {
+        } else if (topic === "sensor/kelembaban") {
             $("#val-hum").text(payload);
-        } else if (topic === "kandang/sensor/pln") {
+        } else if (topic === "status/listrik") {
             updatePlnStatus(payload); // payload: "ON" / "OFF"
-        } else if (topic === "kandang/sensor/fire") {
+        } else if (topic === "detection/flame") {
+            console.log("MQTT message on detection/flame ->", payload);
             updateFireStatus(payload);
         }
 
         // -- Handle Gas Sensors --
-        else if (topic.includes("kandang/sensor/gas")) {
-            // Topic ex: kandang/sensor/gas/area1/1
+        else if (topic.includes("sensor/gas")) {
+            // Topic ex: sensor/gas/area1/1
             const parts = topic.split("/");
             const area = parts[3]; // area1
             const sensor = parts[4]; // 1
@@ -52,7 +53,7 @@ $(document).ready(function () {
         }
 
         // -- Handle Device Status Feedback --
-        else if (topic.includes("kandang/status/device")) {
+        else if (topic.includes("status/device")) {
             const parts = topic.split("/");
             const device = parts[3]; // lamp, fan1, fan2
             const status = payload; // ON / OFF
@@ -77,9 +78,9 @@ $(document).ready(function () {
         element.removeClass("safe warning danger");
 
         let status = "safe";
-        if (ppm < 300) {
+        if (ppm <= 300) {
             element.addClass("safe");
-        } else if (ppm < 600) {
+        } else if (ppm <= 600) {
             element.addClass("warning");
             status = "warning";
         } else {
@@ -108,7 +109,7 @@ $(document).ready(function () {
                 dangerAreas.add(
                     data.area === "area1"
                         ? "Area 1 (Depan)"
-                        : "Area 2 (Belakang)"
+                        : "Area 2 (Belakang)",
                 );
             } else if (data.status === "warning" && maxStatus === "AMAN") {
                 maxStatus = "WASPADA";
@@ -121,7 +122,7 @@ $(document).ready(function () {
             maxStatus = "BAHAYA";
             const areaText = Array.from(dangerAreas).join(" & ");
             $("#gas-alert-text").text(
-                `BAHAYA! Gas tinggi terdeteksi di ${areaText}`
+                `BAHAYA! Gas tinggi terdeteksi di ${areaText}`,
             );
             alertBox.show();
         } else {
@@ -134,8 +135,8 @@ $(document).ready(function () {
             maxStatus === "BAHAYA"
                 ? "#ff416c"
                 : maxStatus === "WASPADA"
-                ? "#f7971e"
-                : "#fff";
+                  ? "#f7971e"
+                  : "#fff";
         $("#status-gas-global").css("color", color);
     }
 
@@ -151,22 +152,43 @@ $(document).ready(function () {
         $("#auto-time-off").val("");
 
         // Tampilkan modal
-        new bootstrap.Modal(document.getElementById("deviceModal")).show();
+        const modalElement = document.getElementById("deviceModal");
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+        // Set focus to first input after modal is shown
+        modalElement.addEventListener(
+            "shown.bs.modal",
+            function () {
+                document.getElementById("auto-time-on").focus();
+            },
+            { once: true },
+        );
     };
 
     window.sendDeviceCommand = function (action) {
         const deviceId = $("#selected-device-id").val();
 
-        // Kirim ke MQTT (Mode Manual)
-        const payload = JSON.stringify({ mode: "manual", action: action });
-        mqttClient.publish(`kandang/control/${deviceId}`, payload);
+        // Kirim ke MQTT (Mode Manual) - send plain string (ON/OFF)
+        const payload = action; // "ON" or "OFF"
+        // use dedicated topic for lampu if device is lamp/lampu
+        let topic = `kontrol/${deviceId}`;
+        if (
+            deviceId === "lamp" ||
+            deviceId === "lampu" ||
+            deviceId.startsWith("lamp")
+        ) {
+            topic = "kontrol/lampu";
+        }
+        console.log(`Publishing to ${topic}: ${payload}`);
+        mqttClient.publish(topic, payload);
 
         // Update UI langsung (Optimistic update)
         updateDeviceButtonUI(deviceId, action);
 
         // Tutup modal
         bootstrap.Modal.getInstance(
-            document.getElementById("deviceModal")
+            document.getElementById("deviceModal"),
         ).hide();
     };
 
@@ -180,18 +202,24 @@ $(document).ready(function () {
             return;
         }
 
-        // Kirim Config Otomatis ke MQTT
-        const payload = JSON.stringify({
-            mode: "auto",
-            time_on: timeOn,
-            time_off: timeOff,
-        });
+        // Kirim Config Otomatis ke MQTT - send as plain string format: "HH:MM,HH:MM"
+        const payload = `${timeOn},${timeOff}`;
 
-        mqttClient.publish(`kandang/control/${deviceId}`, payload);
+        // use dedicated topic for lampu if device is lamp/lampu
+        let topic = `kontrol/${deviceId}`;
+        if (
+            deviceId === "lamp" ||
+            deviceId === "lampu" ||
+            deviceId.startsWith("lamp")
+        ) {
+            topic = "kontrol/lampu";
+        }
+        console.log(`Publishing auto settings to ${topic}: ${payload}`);
+        mqttClient.publish(topic, payload);
         alert(`Jadwal otomatis untuk ${deviceId} berhasil disimpan.`);
 
         bootstrap.Modal.getInstance(
-            document.getElementById("deviceModal")
+            document.getElementById("deviceModal"),
         ).hide();
     };
 
@@ -214,19 +242,39 @@ $(document).ready(function () {
         console.log("Moving camera:", direction);
         // Kirim command PTZ
         mqttClient.publish(
-            "kandang/control/camera",
-            JSON.stringify({ action: direction })
+            "kontrol/kamera",
+            JSON.stringify({ action: direction }),
         );
     };
 
     function updateFireStatus(val) {
-        const isFire = val === "1" || val === 1;
+        const raw =
+            typeof val === "string" ? val.trim().toLowerCase() : String(val);
+        console.debug("updateFireStatus received:", raw);
+
+        const isFire =
+            raw === "1" ||
+            raw === "true" ||
+            raw === "on" ||
+            raw === "terdeteksi" ||
+            raw === "yes";
+
+        const $statusEl = $("#status-fire");
+        const $overlayEl = $("#fire-overlay");
+
+        if ($statusEl.length === 0 || $overlayEl.length === 0) {
+            console.warn(
+                "updateFireStatus: missing #status-fire or #fire-overlay in DOM",
+            );
+            return;
+        }
+
         if (isFire) {
-            $("#status-fire").text("TERDETEKSI!").css("color", "#ff416c");
-            $("#fire-overlay").show(); // Tampilkan overlay di CCTV
+            $statusEl.text("TERDETEKSI!").css("color", "#ff416c");
+            $overlayEl.show(); // Tampilkan overlay di CCTV
         } else {
-            $("#status-fire").text("AMAN").css("color", "#00b09b");
-            $("#fire-overlay").hide();
+            $statusEl.text("AMAN").css("color", "#00b09b");
+            $overlayEl.hide();
         }
     }
 
@@ -235,6 +283,13 @@ $(document).ready(function () {
     cctv.onerror = function () {
         cctv.src =
             "https://via.placeholder.com/800x600/000000/3b82f6?text=CCTV+SIGNAL+LOST";
+        console.warn(
+            "CCTV stream failed to load. Check if the stream is running at the configured URL.",
+        );
+    };
+
+    cctv.onload = function () {
+        console.log("CCTV stream loaded successfully");
     };
 
     function updatePlnStatus(val) {
@@ -245,33 +300,33 @@ $(document).ready(function () {
 
     // --- 5. SIMULATION (Hapus ini jika sudah ada alat real) ---
     // Simulasi data masuk setiap 3 detik
-    setInterval(() => {
-        const areas = ["area1", "area2"];
-        const sensors = [1, 2, 3, 4];
+    // setInterval(() => {
+    //     const areas = ["area1", "area2"];
+    //     const sensors = [1, 2, 3, 4];
 
-        // Random Gas
-        const randArea = areas[Math.floor(Math.random() * areas.length)];
-        const randSensor = sensors[Math.floor(Math.random() * sensors.length)];
-        const randPpm = Math.floor(Math.random() * 800) + 100; // 100 - 900 ppm
+    //     // Random Gas
+    //     const randArea = areas[Math.floor(Math.random() * areas.length)];
+    //     const randSensor = sensors[Math.floor(Math.random() * sensors.length)];
+    //     const randPpm = Math.floor(Math.random() * 800) + 100; // 100 - 900 ppm
 
-        mqttClient.emit(
-            "message",
-            `kandang/sensor/gas/${randArea}/${randSensor}`,
-            randPpm.toString()
-        );
+    //     mqttClient.emit(
+    //         "message",
+    //         `sensor/gas/${randArea}/${randSensor}`,
+    //         randPpm.toString()
+    //     );
 
-        // Random Temp
-        mqttClient.emit(
-            "message",
-            "kandang/sensor/temp",
-            (Math.random() * 5 + 28).toFixed(1)
-        );
+    //     // Random Temp
+    //     mqttClient.emit(
+    //         "message",
+    //         "sensor/suhu",
+    //         (Math.random() * 5 + 28).toFixed(1)
+    //     );
 
-        // Random Humidity
-        mqttClient.emit(
-            "message",
-            "kandang/sensor/humidity",
-            (Math.random() * 20 + 60).toFixed(1)
-        );
-    }, 2000);
+    //     // Random Humidity
+    //     mqttClient.emit(
+    //         "message",
+    //         "sensor/kelembaban",
+    //         (Math.random() * 20 + 60).toFixed(1)
+    //     );
+    // }, 2000);
 });

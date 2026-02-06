@@ -11,12 +11,14 @@ class MqttService
     protected $host;
     protected $port;
     protected $clientId;
+    protected $useWebsockets;
 
     public function __construct()
     {
         $this->host = env('MQTT_HOST', 'broker.hivemq.com');
-        $this->port = env('MQTT_PORT', 1883);
+        $this->port = env('MQTT_PORT', 1884);
         $this->clientId = env('MQTT_CLIENT_ID', 'kandang_' . uniqid());
+        $this->useWebsockets = env('MQTT_USE_WEBSOCKETS', false);
     }
 
     public function connect()
@@ -29,7 +31,14 @@ class MqttService
             ->setLastWillMessage('offline')
             ->setLastWillQualityOfService(0);
 
-        $this->client = new MqttClient($this->host, $this->port, $this->clientId);
+        $this->client = new MqttClient(
+            $this->host,
+            $this->port,
+            $this->clientId,
+            MqttClient::MQTT_3_1_1,
+            null
+        );
+
         $this->client->connect($connectionSettings, true);
     }
 
