@@ -100,7 +100,7 @@
                         <i class="fas fa-sliders-h text-primary"></i> Kontrol Perangkat
                     </div>
                     <div class="device-controls">
-                        <button class="device-btn" id="btn-lampu" onclick="openControlModal('lampu', 'Lampu Utama')">
+                        <button class="device-btn" id="btn-lampu" onclick="openControlModal('lampu', 'Lampu Kandang')">
                             <div class="icon-wrapper"><i class="fas fa-lightbulb"></i></div>
                             <span class="device-label">Lampu Utama</span>
                             <span class="device-status">OFF</span>
@@ -174,6 +174,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="selected-device-id">
+
                     <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
                         <li class="nav-item">
                             <button class="nav-link active" id="pills-manual-tab" data-bs-toggle="pill"
@@ -187,29 +188,38 @@
 
                     <div class="tab-content" id="pills-tabContent">
                         <div class="tab-pane fade show active" id="pills-manual">
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-success py-2 fw-bold"
-                                    onclick="sendDeviceCommand('ON')">NYALAKAN</button>
-                                <button class="btn btn-danger py-2 fw-bold"
-                                    onclick="sendDeviceCommand('OFF')">MATIKAN</button>
+                            <div id="manual-controls">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-success py-2 fw-bold"
+                                        onclick="sendDeviceCommand('ON')">NYALAKAN</button>
+                                    <button class="btn btn-danger py-2 fw-bold"
+                                        onclick="sendDeviceCommand('OFF')">MATIKAN</button>
+                                </div>
+                            </div>
+                            <div id="manual-locked-msg" class="text-center py-3 d-none">
+                                <i class="fas fa-lock mb-2 text-warning"></i>
+                                <p class="small text-warning">Mode Otomatis sedang aktif.<br>Matikan mode otomatis untuk
+                                    menggunakan kontrol manual.</p>
                             </div>
                         </div>
 
                         <div class="tab-pane fade" id="pills-auto">
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <label class="form-label text-white-50 small">Jam Nyala</label>
-                                    <input type="time" class="form-control bg-dark text-white border-secondary"
-                                        id="auto-time-on">
+                                    <label class="form-label text-white-50 small">Durasi Nyala (Detik)</label>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary"
+                                        id="auto-time-on" placeholder="Detik">
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label text-white-50 small">Jam Mati</label>
-                                    <input type="time" class="form-control bg-dark text-white border-secondary"
-                                        id="auto-time-off">
+                                    <label class="form-label text-white-50 small">Durasi Mati (Detik)</label>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary"
+                                        id="auto-time-off" placeholder="Detik">
                                 </div>
                                 <div class="col-12 mt-3">
-                                    <button class="btn btn-primary w-100" onclick="saveAutoSettings()">Simpan
-                                        Jadwal</button>
+                                    <button class="btn btn-primary w-100 fw-bold mb-2" onclick="saveAutoSettings()">MULAI
+                                        JADWAL OTOMATIS</button>
+                                    <button class="btn btn-outline-danger w-100 fw-bold"
+                                        onclick="stopAutoSettings()">HENTIKAN JADWAL OTOMATIS</button>
                                 </div>
                             </div>
                         </div>
