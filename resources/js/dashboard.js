@@ -10,14 +10,19 @@ $(document).ready(function () {
 
     mqttClient.on("connect", function () {
         console.log("Terhubung ke MQTT Broker");
-        // Berlangganan topik sensor dan status
+        // Berlangganan topik sensor dan status (sesuai .env)
         mqttClient.subscribe("sensor/suhu");
         mqttClient.subscribe("sensor/kelembaban");
-        mqttClient.subscribe("detection/flame");
+        mqttClient.subscribe("detection/flame");          // MQTT_TOPIC_FIRE
         mqttClient.subscribe("status/listrik");
-        mqttClient.subscribe("sensor/gas/#");
-        mqttClient.subscribe("status/lampu"); // Untuk sinkronisasi logo lampu
-        mqttClient.subscribe("fan/mode"); // Untuk memantau mode otomatis
+        
+        // Subscribe ke 8 sensor gas (sensor/gas1 - sensor/gas8)
+        for (let i = 1; i <= 8; i++) {
+            mqttClient.subscribe("sensor/gas" + i);
+        }
+        
+        mqttClient.subscribe("status/lampu");             // Untuk sinkronisasi logo lampu
+        mqttClient.subscribe("fan/mode");                 // MQTT_TOPIC_FAN_MODE
     });
 
     mqttClient.on("message", function (topic, message) {
@@ -29,7 +34,7 @@ $(document).ready(function () {
             $("#val-hum").text(payload);
         } else if (topic === "status/listrik") {
             updatePlnStatus(payload);
-        } else if (topic === "detection/flame") {
+        } else if (topic === "detection/flame") {          // MQTT_TOPIC_FIRE
             updateFireStatus(payload);
         }
         // Sinkronisasi Logo Lampu (Manual & Otomatis)
@@ -37,16 +42,24 @@ $(document).ready(function () {
             updateDeviceButtonUI("lampu", payload);
         }
         // Sinkronisasi Mode Otomatis dari ESP32
-        else if (topic === "fan/mode") {
+        else if (topic === "fan/mode") {                   // MQTT_TOPIC_FAN_MODE
             window.isAutoModeActive = payload === "auto";
             updateManualLockUI();
         }
-        // Sensor Gas
-        else if (topic.includes("sensor/gas")) {
-            const sensorNum = topic.replace("sensor/gas", "");
+        // Sensor Gas - Format: sensor/gas1, sensor/gas2, ..., sensor/gas8
+        else if (topic.startsWith("sensor/gas")) {
+            // Extract nomor sensor dari topik (contoh: "sensor/gas1" -> 1)
+            const sensorNum = parseInt(topic.replace("sensor/gas", ""));
             const ppm = parseFloat(payload);
-            const area = parseInt(sensorNum) <= 4 ? "area1" : "area2";
-            const sensorId = ((parseInt(sensorNum) - 1) % 4) + 1;
+            
+            // Mapping sensor ke area:
+            // Sensor 1-4 -> Area 1 (Depan)
+            // Sensor 5-8 -> Area 2 (Belakang)
+            const area = sensorNum <= 4 ? "area1" : "area2";
+            
+            // ID sensor di dalam area (1-4)
+            const sensorId = ((sensorNum - 1) % 4) + 1;
+            
             updateGasMap(area, sensorId, ppm);
         }
     });
@@ -76,12 +89,32 @@ $(document).ready(function () {
         }
 
         const deviceId = $("#selected-device-id").val();
-        let topic = `kontrol/${deviceId}`;
-        if (deviceId === "lampu" || deviceId === "lamp")
-            topic = "kontrol/lampu";
+        let topic = "";
+        let payload = action; // "ON" atau "OFF"
 
-        mqttClient.publish(topic, action);
+        // Mapping device ke topik MQTT sesuai .env
+        if (deviceId === "lampu" || deviceId === "lamp") {
+            topic = "kontrol/lampu";              // MQTT_TOPIC_LAMP_MANUAL
+        } else if (deviceId === "fan1") {
+            topic = "fan1/speed";                 // MQTT_TOPIC_FAN1_SPEED
+            // Untuk fan, kirim duty cycle: ON=255, OFF=0
+            payload = action === "ON" ? "255" : "0";
+        } else if (deviceId === "fan2") {
+            topic = "fan2/speed";                 // MQTT_TOPIC_FAN2_SPEED
+            // Untuk fan, kirim duty cycle: ON=255, OFF=0
+            payload = action === "ON" ? "255" : "0";
+        } else {
+            console.warn("Device ID tidak dikenali:", deviceId);
+            return;
+        }
+
+        console.log(`Publishing to ${topic}: ${payload}`);
+        mqttClient.publish(topic, payload);
+
+        // Update UI langsung (Optimistic update)
         updateDeviceButtonUI(deviceId, action);
+
+        // Tutup modal
         bootstrap.Modal.getInstance(
             document.getElementById("deviceModal"),
         ).hide();
@@ -91,14 +124,14 @@ $(document).ready(function () {
         const detikOn = $("#auto-time-on").val();
         const detikOff = $("#auto-time-off").val();
 
-        if (!detikOn || !detikOff || detikOn <= 0) {
+        if (!detikOn || !detikOff || detikOn <= 0 || detikOff <= 0) {
             alert("Masukkan durasi detik yang valid!");
             return;
         }
 
         // Format sesuai ESP32: "ON:detikHidup:detikMati"
         const payload = `ON:${detikOn}:${detikOff}`;
-        mqttClient.publish("kontrol/lampu/auto", payload);
+        mqttClient.publish("kontrol/lampu/auto", payload);  // MQTT_TOPIC_LAMP_AUTO
 
         window.isAutoModeActive = true;
         updateManualLockUI();
@@ -110,7 +143,7 @@ $(document).ready(function () {
     };
 
     window.stopAutoSettings = function () {
-        mqttClient.publish("kontrol/lampu/auto", "OFF");
+        mqttClient.publish("kontrol/lampu/auto", "OFF");   // MQTT_TOPIC_LAMP_AUTO
         window.isAutoModeActive = false;
         updateManualLockUI();
         alert("Mode Otomatis Dihentikan");
@@ -135,10 +168,12 @@ $(document).ready(function () {
         const btn = $(`#btn-${targetId}`);
         const statusText = btn.find(".device-status");
 
-        if (status === "ON") {
+        if (status === "ON" || status === "255") {
             btn.addClass("on active");
             statusText.text("ON");
-            btn.find("i").css("color", "#fbbf24"); // Warna kuning menyala
+            if (targetId === "lampu") {
+                btn.find("i").css("color", "#fbbf24"); // Warna kuning menyala
+            }
         } else {
             btn.removeClass("on active");
             statusText.text("OFF");
@@ -146,7 +181,7 @@ $(document).ready(function () {
         }
     }
 
-    // --- 2. GAS MAP LOGIC ---
+    // --- 3. GAS MAP LOGIC ---
     // Simpan nilai gas untuk pengecekan global
     let gasReadings = {};
 
@@ -225,128 +260,37 @@ $(document).ready(function () {
         $("#status-gas-global").css("color", color);
     }
 
-    // --- 3. DEVICE CONTROL LOGIC ---
-
-    // Fungsi dipanggil dari HTML onclick
-    window.openControlModal = function (deviceId, deviceName) {
-        $("#selected-device-id").val(deviceId);
-        $("#modalDeviceTitle").text(`Kontrol: ${deviceName}`);
-
-        // Reset inputs
-        $("#auto-time-on").val("");
-        $("#auto-time-off").val("");
-
-        // Tampilkan modal
-        const modalElement = document.getElementById("deviceModal");
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-
-        // Set focus to first input after modal is shown
-        modalElement.addEventListener(
-            "shown.bs.modal",
-            function () {
-                document.getElementById("auto-time-on").focus();
-            },
-            { once: true },
-        );
-    };
-
-    window.sendDeviceCommand = function (action) {
-        const deviceId = $("#selected-device-id").val();
-
-        // Kirim ke MQTT (Mode Manual) - send plain string (ON/OFF)
-        const payload = action; // "ON" or "OFF"
-        // use dedicated topic for lampu if device is lamp/lampu
-        let topic = `kontrol/${deviceId}`;
-        if (
-            deviceId === "lamp" ||
-            deviceId === "lampu" ||
-            deviceId.startsWith("lamp")
-        ) {
-            topic = "kontrol/lampu";
-        }
-        console.log(`Publishing to ${topic}: ${payload}`);
-        mqttClient.publish(topic, payload);
-
-        // Update UI langsung (Optimistic update)
-        updateDeviceButtonUI(deviceId, action);
-
-        // Tutup modal
-        bootstrap.Modal.getInstance(
-            document.getElementById("deviceModal"),
-        ).hide();
-    };
-
-    // Fungsi untuk memulai jadwal otomatis (Satuan Detik)
-    window.saveAutoSettings = function () {
-        const detikOn = $("#auto-time-on").val();
-        const detikOff = $("#auto-time-off").val();
-
-        if (!detikOn || !detikOff || detikOn <= 0 || detikOff <= 0) {
-            alert("Mohon masukkan durasi detik yang valid!");
-            return;
-        }
-
-        // Mengirim payload "ON:detikHidup:detikMati" ke Arduino
-        const payload = `ON:${detikOn}:${detikOff}`;
-        mqttClient.publish("kontrol/lampu/auto", payload);
-
-        isAutoModeActive = true;
-        updateManualLockUI(); // Kunci kontrol manual
-
-        alert("Mode Otomatis Berhasil Diaktifkan");
-        bootstrap.Modal.getInstance(
-            document.getElementById("deviceModal"),
-        ).hide();
-    };
-
-    // Fungsi untuk menghentikan jadwal otomatis
-    window.stopAutoSettings = function () {
-        // Mengirim "OFF" untuk mematikan mode otomatis di Arduino
-        mqttClient.publish("kontrol/lampu/auto", "OFF");
-
-        isAutoModeActive = false;
-        updateManualLockUI(); // Buka kembali kontrol manual
-
-        alert("Mode Otomatis Dihentikan");
-        bootstrap.Modal.getInstance(
-            document.getElementById("deviceModal"),
-        ).hide();
-    };
-
-    // Fungsi untuk mengunci atau membuka UI kontrol manual
-    function updateManualLockUI() {
-        if (isAutoModeActive) {
-            $("#manual-controls").addClass("d-none"); // Sembunyikan tombol manual
-            $("#manual-locked-msg").removeClass("d-none"); // Tampilkan pesan terkunci
-        } else {
-            $("#manual-controls").removeClass("d-none");
-            $("#manual-locked-msg").addClass("d-none");
-        }
-    }
-
-    function updateDeviceButtonUI(deviceId, status) {
-        const btn = $(`#btn-${deviceId}`);
-        const statusText = btn.find(".device-status");
-
-        if (status === "ON") {
-            btn.addClass("on");
-            statusText.text("ON");
-        } else {
-            btn.removeClass("on");
-            statusText.text("OFF");
-        }
-    }
-
     // --- 4. CAMERA & FIRE LOGIC ---
 
     window.moveCamera = function (direction) {
         console.log("Moving camera:", direction);
-        // Kirim command PTZ
-        mqttClient.publish(
-            "kontrol/kamera",
-            JSON.stringify({ action: direction }),
-        );
+        
+        // Mapping gerakan ke posisi servo
+        let horizontal = 90; // posisi default
+        let vertical = 90;   // posisi default
+        
+        switch(direction) {
+            case 'up':
+                vertical = 60;
+                mqttClient.publish("servo/v", vertical.toString()); // MQTT_TOPIC_SERVO_V
+                break;
+            case 'down':
+                vertical = 120;
+                mqttClient.publish("servo/v", vertical.toString()); // MQTT_TOPIC_SERVO_V
+                break;
+            case 'left':
+                horizontal = 60;
+                mqttClient.publish("servo/h", horizontal.toString()); // MQTT_TOPIC_SERVO_H
+                break;
+            case 'right':
+                horizontal = 120;
+                mqttClient.publish("servo/h", horizontal.toString()); // MQTT_TOPIC_SERVO_H
+                break;
+            case 'reset':
+                mqttClient.publish("servo/h", "90"); // MQTT_TOPIC_SERVO_H
+                mqttClient.publish("servo/v", "90"); // MQTT_TOPIC_SERVO_V
+                break;
+        }
     };
 
     function updateFireStatus(val) {
@@ -358,77 +302,52 @@ $(document).ready(function () {
             raw === "1" ||
             raw === "true" ||
             raw === "on" ||
+            raw === "fire" ||
             raw === "terdeteksi" ||
             raw === "yes";
 
         const $statusEl = $("#status-fire");
         const $overlayEl = $("#fire-overlay");
 
-        if ($statusEl.length === 0 || $overlayEl.length === 0) {
+        if ($statusEl.length === 0) {
             console.warn(
-                "updateFireStatus: missing #status-fire or #fire-overlay in DOM",
+                "updateFireStatus: missing #status-fire in DOM",
             );
             return;
         }
 
         if (isFire) {
             $statusEl.text("TERDETEKSI!").css("color", "#ff416c");
-            $overlayEl.show(); // Tampilkan overlay di CCTV
+            if ($overlayEl.length > 0) {
+                $overlayEl.show(); // Tampilkan overlay di CCTV (jika ada)
+            }
         } else {
             $statusEl.text("AMAN").css("color", "#00b09b");
-            $overlayEl.hide();
+            if ($overlayEl.length > 0) {
+                $overlayEl.hide();
+            }
         }
     }
 
     const cctv = document.getElementById("cctv-image");
 
-    cctv.onerror = function () {
-        cctv.src =
-            "https://via.placeholder.com/800x600/000000/3b82f6?text=CCTV+SIGNAL+LOST";
-        console.warn(
-            "CCTV stream failed to load. Check if the stream is running at the configured URL.",
-        );
-    };
+    if (cctv) {
+        cctv.onerror = function () {
+            cctv.src =
+                "https://via.placeholder.com/800x600/000000/3b82f6?text=CCTV+SIGNAL+LOST";
+            console.warn(
+                "CCTV stream failed to load. Check if the stream is running at the configured URL.",
+            );
+        };
 
-    cctv.onload = function () {
-        console.log("CCTV stream loaded successfully");
-    };
+        cctv.onload = function () {
+            console.log("CCTV stream loaded successfully");
+        };
+    }
 
     function updatePlnStatus(val) {
         // Val: "ON" or "OFF"
         $("#status-pln").text(val === "ON" ? "HIDUP" : "MATI");
         $("#status-pln").css("color", val === "ON" ? "#fff" : "#ff416c");
     }
-
-    // --- 5. SIMULATION (Hapus ini jika sudah ada alat real) ---
-    // Simulasi data masuk setiap 3 detik
-    // setInterval(() => {
-    //     const areas = ["area1", "area2"];
-    //     const sensors = [1, 2, 3, 4];
-
-    //     // Random Gas
-    //     const randArea = areas[Math.floor(Math.random() * areas.length)];
-    //     const randSensor = sensors[Math.floor(Math.random() * sensors.length)];
-    //     const randPpm = Math.floor(Math.random() * 800) + 100; // 100 - 900 ppm
-
-    //     mqttClient.emit(
-    //         "message",
-    //         `sensor/gas/${randArea}/${randSensor}`,
-    //         randPpm.toString()
-    //     );
-
-    //     // Random Temp
-    //     mqttClient.emit(
-    //         "message",
-    //         "sensor/suhu",
-    //         (Math.random() * 5 + 28).toFixed(1)
-    //     );
-
-    //     // Random Humidity
-    //     mqttClient.emit(
-    //         "message",
-    //         "sensor/kelembaban",
-    //         (Math.random() * 20 + 60).toFixed(1)
-    //     );
-    // }, 2000);
 });
