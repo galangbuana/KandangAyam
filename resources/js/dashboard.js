@@ -3,7 +3,7 @@ $(document).ready(function () {
     window.isAutoModeActive = false;
 
     // --- 1. KONEKSI MQTT ---
-    const mqttClient = mqtt.connect("ws://10.146.45.75:1884/mqtt", {
+    const mqttClient = mqtt.connect("ws://192.168.1.8:1884/mqtt", {
         username: "galang",
         password: "galang12",
     });
@@ -13,16 +13,16 @@ $(document).ready(function () {
         // Berlangganan topik sensor dan status (sesuai .env)
         mqttClient.subscribe("sensor/suhu");
         mqttClient.subscribe("sensor/kelembaban");
-        mqttClient.subscribe("detection/flame");          // MQTT_TOPIC_FIRE
+        mqttClient.subscribe("detection/flame"); // MQTT_TOPIC_FIRE
         mqttClient.subscribe("status/listrik");
-        
+
         // Subscribe ke 8 sensor gas (sensor/gas1 - sensor/gas8)
         for (let i = 1; i <= 8; i++) {
             mqttClient.subscribe("sensor/gas" + i);
         }
-        
-        mqttClient.subscribe("status/lampu");             // Untuk sinkronisasi logo lampu
-        mqttClient.subscribe("fan/mode");                 // MQTT_TOPIC_FAN_MODE
+
+        mqttClient.subscribe("status/lampu"); // Untuk sinkronisasi logo lampu
+        mqttClient.subscribe("fan/mode"); // MQTT_TOPIC_FAN_MODE
     });
 
     mqttClient.on("message", function (topic, message) {
@@ -34,7 +34,8 @@ $(document).ready(function () {
             $("#val-hum").text(payload);
         } else if (topic === "status/listrik") {
             updatePlnStatus(payload);
-        } else if (topic === "detection/flame") {          // MQTT_TOPIC_FIRE
+        } else if (topic === "detection/flame") {
+            // MQTT_TOPIC_FIRE
             updateFireStatus(payload);
         }
         // Sinkronisasi Logo Lampu (Manual & Otomatis)
@@ -42,7 +43,8 @@ $(document).ready(function () {
             updateDeviceButtonUI("lampu", payload);
         }
         // Sinkronisasi Mode Otomatis dari ESP32
-        else if (topic === "fan/mode") {                   // MQTT_TOPIC_FAN_MODE
+        else if (topic === "fan/mode") {
+            // MQTT_TOPIC_FAN_MODE
             window.isAutoModeActive = payload === "auto";
             updateManualLockUI();
         }
@@ -51,15 +53,15 @@ $(document).ready(function () {
             // Extract nomor sensor dari topik (contoh: "sensor/gas1" -> 1)
             const sensorNum = parseInt(topic.replace("sensor/gas", ""));
             const ppm = parseFloat(payload);
-            
+
             // Mapping sensor ke area:
             // Sensor 1-4 -> Area 1 (Depan)
             // Sensor 5-8 -> Area 2 (Belakang)
             const area = sensorNum <= 4 ? "area1" : "area2";
-            
+
             // ID sensor di dalam area (1-4)
             const sensorId = ((sensorNum - 1) % 4) + 1;
-            
+
             updateGasMap(area, sensorId, ppm);
         }
     });
@@ -90,19 +92,14 @@ $(document).ready(function () {
 
         const deviceId = $("#selected-device-id").val();
         let topic = "";
-        let payload = action; // "ON" atau "OFF"
+        // Mengubah action (ON/OFF) menjadi lowercase (on/off) untuk payload
+        let payload = action.toLowerCase();
 
-        // Mapping device ke topik MQTT sesuai .env
         if (deviceId === "lampu" || deviceId === "lamp") {
-            topic = "kontrol/lampu";              // MQTT_TOPIC_LAMP_MANUAL
-        } else if (deviceId === "fan1") {
-            topic = "fan1/speed";                 // MQTT_TOPIC_FAN1_SPEED
-            // Untuk fan, kirim duty cycle: ON=255, OFF=0
-            payload = action === "ON" ? "255" : "0";
-        } else if (deviceId === "fan2") {
-            topic = "fan2/speed";                 // MQTT_TOPIC_FAN2_SPEED
-            // Untuk fan, kirim duty cycle: ON=255, OFF=0
-            payload = action === "ON" ? "255" : "0";
+            topic = "kontrol/lampu";
+        } else if (deviceId === "fan") {
+            // Menggunakan topik relay/1 seperti yang Anda inginkan sebelumnya
+            topic = "relay/1";
         } else {
             console.warn("Device ID tidak dikenali:", deviceId);
             return;
@@ -111,10 +108,9 @@ $(document).ready(function () {
         console.log(`Publishing to ${topic}: ${payload}`);
         mqttClient.publish(topic, payload);
 
-        // Update UI langsung (Optimistic update)
+        // Update UI (Parameter status tetap 'ON' agar fungsi UI tidak pecah)
         updateDeviceButtonUI(deviceId, action);
 
-        // Tutup modal
         bootstrap.Modal.getInstance(
             document.getElementById("deviceModal"),
         ).hide();
@@ -131,7 +127,7 @@ $(document).ready(function () {
 
         // Format sesuai ESP32: "ON:detikHidup:detikMati"
         const payload = `ON:${detikOn}:${detikOff}`;
-        mqttClient.publish("kontrol/lampu/auto", payload);  // MQTT_TOPIC_LAMP_AUTO
+        mqttClient.publish("kontrol/lampu/auto", payload); // MQTT_TOPIC_LAMP_AUTO
 
         window.isAutoModeActive = true;
         updateManualLockUI();
@@ -143,7 +139,7 @@ $(document).ready(function () {
     };
 
     window.stopAutoSettings = function () {
-        mqttClient.publish("kontrol/lampu/auto", "OFF");   // MQTT_TOPIC_LAMP_AUTO
+        mqttClient.publish("kontrol/lampu/auto", "OFF"); // MQTT_TOPIC_LAMP_AUTO
         window.isAutoModeActive = false;
         updateManualLockUI();
         alert("Mode Otomatis Dihentikan");
@@ -163,21 +159,32 @@ $(document).ready(function () {
     }
 
     function updateDeviceButtonUI(deviceId, status) {
-        const targetId =
-            deviceId === "lamp" || deviceId === "lampu" ? "lampu" : deviceId;
-        const btn = $(`#btn-${targetId}`);
-        const statusText = btn.find(".device-status");
+        let targetId = deviceId;
+        // Map status dari MQTT ke ID tombol di dashboard
+        if (deviceId === "lampu" || deviceId === "lamp") targetId = "lampu";
+        if (
+            deviceId === "fan" ||
+            deviceId === "fan1" ||
+            deviceId === "fan2" ||
+            deviceId === "relay/1"
+        )
+            targetId = "fan";
 
-        if (status === "ON" || status === "255") {
-            btn.addClass("on active");
-            statusText.text("ON");
-            if (targetId === "lampu") {
-                btn.find("i").css("color", "#fbbf24"); // Warna kuning menyala
+        const btn = $(`#btn-${targetId}`);
+        if (btn.length) {
+            const statusText = btn.find(".device-status");
+            if (status === "ON" || status === "on" || status === "255") {
+                btn.addClass("on active");
+                statusText.text("ON");
+                btn.find("i").css(
+                    "color",
+                    targetId === "lampu" ? "#fbbf24" : "#3b82f6",
+                );
+            } else {
+                btn.removeClass("on active");
+                statusText.text("OFF");
+                btn.find("i").css("color", "");
             }
-        } else {
-            btn.removeClass("on active");
-            statusText.text("OFF");
-            btn.find("i").css("color", "");
         }
     }
 
@@ -264,29 +271,29 @@ $(document).ready(function () {
 
     window.moveCamera = function (direction) {
         console.log("Moving camera:", direction);
-        
+
         // Mapping gerakan ke posisi servo
         let horizontal = 90; // posisi default
-        let vertical = 90;   // posisi default
-        
-        switch(direction) {
-            case 'up':
+        let vertical = 90; // posisi default
+
+        switch (direction) {
+            case "up":
                 vertical = 60;
                 mqttClient.publish("servo/v", vertical.toString()); // MQTT_TOPIC_SERVO_V
                 break;
-            case 'down':
+            case "down":
                 vertical = 120;
                 mqttClient.publish("servo/v", vertical.toString()); // MQTT_TOPIC_SERVO_V
                 break;
-            case 'left':
+            case "left":
                 horizontal = 60;
                 mqttClient.publish("servo/h", horizontal.toString()); // MQTT_TOPIC_SERVO_H
                 break;
-            case 'right':
+            case "right":
                 horizontal = 120;
                 mqttClient.publish("servo/h", horizontal.toString()); // MQTT_TOPIC_SERVO_H
                 break;
-            case 'reset':
+            case "reset":
                 mqttClient.publish("servo/h", "90"); // MQTT_TOPIC_SERVO_H
                 mqttClient.publish("servo/v", "90"); // MQTT_TOPIC_SERVO_V
                 break;
@@ -310,9 +317,7 @@ $(document).ready(function () {
         const $overlayEl = $("#fire-overlay");
 
         if ($statusEl.length === 0) {
-            console.warn(
-                "updateFireStatus: missing #status-fire in DOM",
-            );
+            console.warn("updateFireStatus: missing #status-fire in DOM");
             return;
         }
 

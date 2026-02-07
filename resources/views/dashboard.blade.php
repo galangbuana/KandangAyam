@@ -3,96 +3,96 @@
 @section('title', 'Smart Kandang Dashboard')
 
 @push('styles')
-@vite('resources/css/dashboard.css')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @vite('resources/css/dashboard.css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 @endpush
 
 @push('styles')
-<style>
-    .particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: rgba(59, 130, 246, 0.6);
-        border-radius: 50%;
-        animation: float linear infinite;
-    }
-
-    @keyframes float {
-        0% {
-            transform: translateY(100vh) translateX(0);
-            opacity: 0;
+    <style>
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: float linear infinite;
         }
 
-        10% {
-            opacity: 1;
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
         }
 
-        90% {
-            opacity: 1;
+        .fire-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 65, 108, 0.3);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
         }
 
-        100% {
-            transform: translateY(-100vh) translateX(100px);
-            opacity: 0;
+        .fire-box {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
         }
-    }
 
-    .fire-overlay {
-        display: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 65, 108, 0.3);
-        border-radius: 12px;
-        align-items: center;
-        justify-content: center;
-    }
+        .fire-box i {
+            color: #ff416c;
+        }
 
-    .fire-box {
-        background: rgba(0, 0, 0, 0.8);
-        padding: 2rem;
-        border-radius: 12px;
-        text-align: center;
-    }
+        .fire-box h3 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
 
-    .fire-box i {
-        color: #ff416c;
-    }
+        .fire-box p {
+            color: #fff;
+            margin: 0;
+        }
 
-    .fire-box h3 {
-        color: #fff;
-        margin-bottom: 0.5rem;
-    }
-
-    .fire-box p {
-        color: #fff;
-        margin: 0;
-    }
-
-    .camera-feed-container {
-        position: relative;
-    }
-</style>
+        .camera-feed-container {
+            position: relative;
+        }
+    </style>
 @endpush
 
 @php
-$particleStyles = [];
-for ($i = 0; $i < 20; $i++) {
-    $left=rand(0, 100);
-    $delay=rand(0, 30);
-    $duration=rand(15, 40);
-    $particleStyles[]="left: {$left}%; animation-delay: -{$delay}s; animation-duration: {$duration}s" ;
+    $particleStyles = [];
+    for ($i = 0; $i < 20; $i++) {
+        $left = rand(0, 100);
+        $delay = rand(0, 30);
+        $duration = rand(15, 40);
+        $particleStyles[] = "left: {$left}%; animation-delay: -{$delay}s; animation-duration: {$duration}s";
     }
-    @endphp
+@endphp
 
-    @section('content')
+@section('content')
     <div class="particles">
-    @foreach ($particleStyles as $style)
-    <div class="particle" style="{{ $style }}"></div>
-    @endforeach
+        @foreach ($particleStyles as $style)
+            <div class="particle" style="{{ $style }}"></div>
+        @endforeach
     </div>
 
     <div class="main-card">
@@ -189,15 +189,9 @@ for ($i = 0; $i < 20; $i++) {
                             <span class="device-status">OFF</span>
                         </button>
 
-                        <button class="device-btn" id="btn-fan1" onclick="openControlModal('fan1', 'Kipas 1')">
+                        <button class="device-btn" id="btn-fan" onclick="openControlModal('fan', 'Kipas Kandang')">
                             <div class="icon-wrapper"><i class="fas fa-fan"></i></div>
-                            <span class="device-label">Kipas 1</span>
-                            <span class="device-status">OFF</span>
-                        </button>
-
-                        <button class="device-btn" id="btn-fan2" onclick="openControlModal('fan2', 'Kipas 2')">
-                            <div class="icon-wrapper"><i class="fas fa-fan"></i></div>
-                            <span class="device-label">Kipas 2</span>
+                            <span class="device-label">Kipas Kandang</span>
                             <span class="device-status">OFF</span>
                         </button>
                     </div>
@@ -286,12 +280,12 @@ for ($i = 0; $i < 20; $i++) {
                         <div class="tab-pane fade show active" id="pills-manual" role="tabpanel">
                             <div id="manual-controls">
                                 <div class="d-grid gap-2">
-                                    <button class="btn btn-success btn-lg py-3 fw-bold"
-                                        onclick="sendDeviceCommand('ON')" style="font-size: 1.1rem;">
+                                    <button class="btn btn-success btn-lg py-3 fw-bold" onclick="sendDeviceCommand('ON')"
+                                        style="font-size: 1.1rem;">
                                         <i class="fas fa-power-off me-2"></i>NYALAKAN
                                     </button>
-                                    <button class="btn btn-danger btn-lg py-3 fw-bold"
-                                        onclick="sendDeviceCommand('OFF')" style="font-size: 1.1rem;">
+                                    <button class="btn btn-danger btn-lg py-3 fw-bold" onclick="sendDeviceCommand('OFF')"
+                                        style="font-size: 1.1rem;">
                                         <i class="fas fa-times-circle me-2"></i>MATIKAN
                                     </button>
                                 </div>
@@ -323,7 +317,8 @@ for ($i = 0; $i < 20; $i++) {
                                         <i class="fas fa-toggle-on text-success me-1"></i>
                                         Durasi Nyala (Detik)
                                     </label>
-                                    <input type="number" class="form-control form-control-lg bg-dark text-white border-secondary"
+                                    <input type="number"
+                                        class="form-control form-control-lg bg-dark text-white border-secondary"
                                         id="auto-time-on" placeholder="contoh: 10" min="1">
                                 </div>
                                 <div class="col-6">
@@ -331,23 +326,28 @@ for ($i = 0; $i < 20; $i++) {
                                         <i class="fas fa-toggle-off text-danger me-1"></i>
                                         Durasi Mati (Detik)
                                     </label>
-                                    <input type="number" class="form-control form-control-lg bg-dark text-white border-secondary"
+                                    <input type="number"
+                                        class="form-control form-control-lg bg-dark text-white border-secondary"
                                         id="auto-time-off" placeholder="contoh: 5" min="1">
                                 </div>
                                 <div class="col-12 mt-4">
-                                    <button class="btn btn-primary btn-lg w-100 fw-bold mb-2 py-3" onclick="saveAutoSettings()">
+                                    <button class="btn btn-primary btn-lg w-100 fw-bold mb-2 py-3"
+                                        onclick="saveAutoSettings()">
                                         <i class="fas fa-play-circle me-2"></i>MULAI JADWAL OTOMATIS
                                     </button>
-                                    <button class="btn btn-outline-danger btn-lg w-100 fw-bold py-3" onclick="stopAutoSettings()">
+                                    <button class="btn btn-outline-danger btn-lg w-100 fw-bold py-3"
+                                        onclick="stopAutoSettings()">
                                         <i class="fas fa-stop-circle me-2"></i>HENTIKAN JADWAL OTOMATIS
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="alert alert-info mt-3 mb-0" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+                            <div class="alert alert-info mt-3 mb-0"
+                                style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
                                 <small>
                                     <i class="fas fa-lightbulb me-1"></i>
-                                    <strong>Contoh:</strong> Durasi Nyala 10 detik & Durasi Mati 5 detik = Perangkat akan menyala selama 10 detik, kemudian mati selama 5 detik, dan berulang.
+                                    <strong>Contoh:</strong> Durasi Nyala 10 detik & Durasi Mati 5 detik = Perangkat akan
+                                    menyala selama 10 detik, kemudian mati selama 5 detik, dan berulang.
                                 </small>
                             </div>
                         </div>
@@ -356,9 +356,9 @@ for ($i = 0; $i < 20; $i++) {
             </div>
         </div>
     </div>
-    @endsection
+@endsection
 
-    @push('scripts')
+@push('scripts')
     {{-- MQTT Library --}}
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
@@ -372,12 +372,12 @@ for ($i = 0; $i < 20; $i++) {
                 password: "galang12"
             },
             routes: {
-                controlDevice: '{{ Route::has("control.device") ? route("control.device") : "/control/device" }}',
-                controlCamera: '{{ Route::has("control.camera") ? route("control.camera") : "/control/camera" }}'
+                controlDevice: '{{ Route::has('control.device') ? route('control.device') : '/control/device' }}',
+                controlCamera: '{{ Route::has('control.camera') ? route('control.camera') : '/control/camera' }}'
             }
         };
     </script>
 
     {{-- Dashboard JS --}}
     @vite('resources/js/dashboard.js')
-    @endpush
+@endpush
