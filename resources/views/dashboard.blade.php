@@ -118,7 +118,7 @@
                     <div class="info-label">Status Gas LPG</div>
                     <div class="info-icon"><i class="fas fa-wind"></i></div>
                 </div>
-                <div class="info-value" id="status-gas-global">AMAN</div>
+                <div class="info-value" id="status-gas-global">-</div>
             </div>
 
             <div class="info-card">
@@ -152,11 +152,8 @@
                             <div class="sensor-grid">
                                 <div class="sensor-box" id="gas-a2-s4"><span>--</span> <small>ppm</small></div>
                                 <div class="sensor-box" id="gas-a2-s3"><span>--</span> <small>ppm</small></div>
-
-
                                 <div class="sensor-box" id="gas-a1-s2"><span>--</span> <small>ppm</small></div>
                                 <div class="sensor-box" id="gas-a1-s1"><span>--</span> <small>ppm</small></div>
-
                             </div>
                         </div>
                         <div class="area-block">
@@ -205,15 +202,14 @@
                     </div>
 
                     <div class="camera-feed-container">
-                        <img src="http://10.146.45.8:5050/video_feed" alt="CCTV Feed" id="cctv-image"
-                            class="img-fluid rounded mb-4" style="width: 100%; max-width: 480px; border-radius: 12px;" />
+                        <img src="http://10.196.50.8:5050/video_feed" alt="CCTV Feed" id="cctv-image"
+                            class="img-fluid rounded mt-4 mb-4"
+                            style="width: 100%; max-width: 640px; border-radius: 12px;" />
 
                         <div id="fire-overlay" class="fire-overlay">
-                            <div class="fire-box">
+                            {{-- <div class="fire-box">
                                 <i class="fas fa-fire fa-3x mb-3"></i>
-                                <h3>KEBAKARAN!</h3>
-                                <p>Sistem Alarm Aktif</p>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
 
@@ -224,7 +220,6 @@
                                 <i class="fas fa-chevron-up"></i>
                             </button>
                             <div></div>
-
                             <button class="ptz-btn" onclick="moveCamera('left')" title="Kiri">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
@@ -248,6 +243,7 @@
     </div>
 
     {{-- Modal Kontrol Perangkat --}}
+    {{-- Modal Kontrol Perangkat --}}
     <div class="modal fade" id="deviceModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-white" style="background: #1e293b; border: 1px solid #334155;">
@@ -258,97 +254,220 @@
                 <div class="modal-body">
                     <input type="hidden" id="selected-device-id">
 
-                    {{-- Tab Navigation --}}
-                    <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="pills-manual-tab" data-bs-toggle="pill"
-                                data-bs-target="#pills-manual" type="button" role="tab">
-                                <i class="fas fa-hand-pointer me-1"></i> Manual
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="pills-auto-tab" data-bs-toggle="pill"
-                                data-bs-target="#pills-auto" type="button" role="tab">
-                                <i class="fas fa-clock me-1"></i> Otomatis
-                            </button>
-                        </li>
-                    </ul>
+                    {{-- Konten untuk Lampu --}}
+                    <div id="lamp-controls" style="display: none;">
+                        <ul class="nav nav-pills nav-fill mb-3" id="pills-tab-lamp" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="pills-manual-lamp-tab" data-bs-toggle="pill"
+                                    data-bs-target="#pills-manual-lamp" type="button" role="tab">
+                                    <i class="fas fa-hand-pointer me-1"></i> Manual
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="pills-auto-lamp-tab" data-bs-toggle="pill"
+                                    data-bs-target="#pills-auto-lamp" type="button" role="tab">
+                                    <i class="fas fa-clock me-1"></i> Otomatis
+                                </button>
+                            </li>
+                        </ul>
 
-                    {{-- Tab Content --}}
-                    <div class="tab-content" id="pills-tabContent">
-                        {{-- Manual Control Tab --}}
-                        <div class="tab-pane fade show active" id="pills-manual" role="tabpanel">
-                            <div id="manual-controls">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-success btn-lg py-3 fw-bold" onclick="sendDeviceCommand('ON')"
-                                        style="font-size: 1.1rem;">
-                                        <i class="fas fa-power-off me-2"></i>NYALAKAN
-                                    </button>
-                                    <button class="btn btn-danger btn-lg py-3 fw-bold" onclick="sendDeviceCommand('OFF')"
-                                        style="font-size: 1.1rem;">
-                                        <i class="fas fa-times-circle me-2"></i>MATIKAN
-                                    </button>
+                        <div class="tab-content" id="pills-tabContent-lamp">
+                            {{-- Manual Control Tab untuk Lampu --}}
+                            <div class="tab-pane fade show active" id="pills-manual-lamp" role="tabpanel">
+                                <div id="manual-controls-lamp">
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-success btn-lg py-3 fw-bold"
+                                            onclick="sendDeviceCommand('ON')" style="font-size: 1.1rem;">
+                                            <i class="fas fa-power-off me-2"></i>NYALAKAN
+                                        </button>
+                                        <button class="btn btn-danger btn-lg py-3 fw-bold"
+                                            onclick="sendDeviceCommand('OFF')" style="font-size: 1.1rem;">
+                                            <i class="fas fa-times-circle me-2"></i>MATIKAN
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="manual-locked-msg-lamp" class="text-center py-4 d-none">
+                                    <i class="fas fa-lock fa-3x mb-3 text-warning"></i>
+                                    <h5 class="text-warning mb-2">Kontrol Manual Terkunci</h5>
+                                    <p class="small text-white-50">
+                                        Mode Otomatis sedang aktif.<br>
+                                        Hentikan mode otomatis untuk menggunakan kontrol manual.
+                                    </p>
                                 </div>
                             </div>
 
-                            {{-- Locked Message (shown when auto mode active) --}}
-                            <div id="manual-locked-msg" class="text-center py-4 d-none">
-                                <i class="fas fa-lock fa-3x mb-3 text-warning"></i>
-                                <h5 class="text-warning mb-2">Kontrol Manual Terkunci</h5>
-                                <p class="small text-white-50">
-                                    Mode Otomatis sedang aktif.<br>
-                                    Hentikan mode otomatis untuk menggunakan kontrol manual.
-                                </p>
+                            {{-- Auto Schedule Tab untuk Lampu --}}
+                            <div class="tab-pane fade" id="pills-auto-lamp" role="tabpanel">
+                                <div class="mb-3">
+                                    <p class="small text-white-50 mb-3">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Atur jadwal otomatis untuk menyalakan dan mematikan lampu secara berkala.
+                                    </p>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <label class="form-label text-white fw-bold small">
+                                            <i class="fas fa-toggle-on text-success me-1"></i>
+                                            Durasi Nyala (Detik)
+                                        </label>
+                                        <input type="number"
+                                            class="form-control form-control-lg bg-dark text-white border-secondary"
+                                            id="auto-time-on" placeholder="contoh: 10" min="1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-white fw-bold small">
+                                            <i class="fas fa-toggle-off text-danger me-1"></i>
+                                            Durasi Mati (Detik)
+                                        </label>
+                                        <input type="number"
+                                            class="form-control form-control-lg bg-dark text-white border-secondary"
+                                            id="auto-time-off" placeholder="contoh: 5" min="1">
+                                    </div>
+                                    <div class="col-12 mt-4">
+                                        <button class="btn btn-primary btn-lg w-100 fw-bold mb-2 py-3"
+                                            onclick="saveAutoSettings()">
+                                            <i class="fas fa-play-circle me-2"></i>MULAI JADWAL OTOMATIS
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-lg w-100 fw-bold py-3"
+                                            onclick="stopAutoSettings()">
+                                            <i class="fas fa-stop-circle me-2"></i>HENTIKAN JADWAL OTOMATIS
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info mt-3 mb-0"
+                                    style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
+                                    <small>
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        <strong>Contoh:</strong> Durasi Nyala 10 detik & Durasi Mati 5 detik = Lampu akan
+                                        menyala selama 10 detik, kemudian mati selama 5 detik, dan berulang.
+                                    </small>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Auto Schedule Tab --}}
-                        <div class="tab-pane fade" id="pills-auto" role="tabpanel">
-                            <div class="mb-3">
-                                <p class="small text-white-50 mb-3">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Atur jadwal otomatis untuk menyalakan dan mematikan perangkat secara berkala.
-                                </p>
+                    {{-- Konten untuk Kipas --}}
+                    {{-- Konten untuk Kipas --}}
+                    <div id="fan-controls" style="display: none;">
+                        <ul class="nav nav-pills nav-fill mb-3" id="pills-tab-fan" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="pills-manual-fan-tab" data-bs-toggle="pill"
+                                    data-bs-target="#pills-manual-fan" type="button" role="tab">
+                                    <i class="fas fa-hand-pointer me-1"></i> Manual
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="pills-auto-fan-tab" data-bs-toggle="pill"
+                                    data-bs-target="#pills-auto-fan" type="button" role="tab">
+                                    <i class="fas fa-microchip me-1"></i> Otomatis
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="pills-tabContent-fan">
+                            {{-- Manual Control Tab untuk Kipas --}}
+                            <div class="tab-pane fade show active" id="pills-manual-fan" role="tabpanel">
+                                <div id="manual-controls-fan">
+                                    {{-- Step 1: ON/OFF Buttons --}}
+                                    <div id="fan-power-controls">
+                                        <div class="d-grid gap-2 mb-3">
+                                            <button class="btn btn-success btn-lg py-3 fw-bold"
+                                                onclick="toggleFanPower('ON')" id="btn-fan-on">
+                                                <i class="fas fa-power-off me-2"></i>NYALAKAN KIPAS
+                                            </button>
+                                            <button class="btn btn-danger btn-lg py-3 fw-bold"
+                                                onclick="toggleFanPower('OFF')" id="btn-fan-off">
+                                                <i class="fas fa-times-circle me-2"></i>MATIKAN KIPAS
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Step 2: Speed Controls (hidden until ON is clicked) --}}
+                                    <div id="fan-speed-controls" style="display: none;">
+                                        <div class="alert alert-success mb-3"
+                                            style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3);">
+                                            <small>
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                <strong>Kipas AKTIF</strong> - Atur kecepatan kipas di bawah ini
+                                            </small>
+                                        </div>
+
+                                        {{-- Slider Kipas 1 --}}
+                                        <div class="mb-4">
+                                            <label class="form-label text-white fw-bold">
+                                                <i class="fas fa-fan me-2 text-primary"></i>Kipas 1
+                                                <span class="badge bg-primary ms-2" id="fan1-value-display">0</span>
+                                            </label>
+                                            <input type="range" class="form-range" id="fan1-speed-slider"
+                                                min="0" max="255" value="0" step="1">
+                                            <div class="d-flex justify-content-between text-white-50 small mt-1">
+                                                <span>MIN (0)</span>
+                                                <span>MAX (255)</span>
+                                            </div>
+                                        </div>
+
+                                        {{-- Slider Kipas 2 --}}
+                                        <div class="mb-4">
+                                            <label class="form-label text-white fw-bold">
+                                                <i class="fas fa-fan me-2 text-info"></i>Kipas 2
+                                                <span class="badge bg-info ms-2" id="fan2-value-display">0</span>
+                                            </label>
+                                            <input type="range" class="form-range" id="fan2-speed-slider"
+                                                min="0" max="255" value="0" step="1">
+                                            <div class="d-flex justify-content-between text-white-50 small mt-1">
+                                                <span>MIN (0)</span>
+                                                <span>MAX (255)</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary btn-lg py-3 fw-bold"
+                                                onclick="applyFanSpeeds()">
+                                                <i class="fas fa-check-circle me-2"></i>TERAPKAN KECEPATAN
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-lg py-2"
+                                                onclick="showFanPowerControls()">
+                                                <i class="fas fa-arrow-left me-2"></i>Kembali ke ON/OFF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="manual-locked-msg-fan" class="text-center py-4 d-none">
+                                    <i class="fas fa-lock fa-3x mb-3 text-warning"></i>
+                                    <h5 class="text-warning mb-2">Kontrol Manual Terkunci</h5>
+                                    <p class="small text-white-50">
+                                        Mode Otomatis sedang aktif.<br>
+                                        Aktifkan mode manual untuk mengatur kecepatan kipas.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <label class="form-label text-white fw-bold small">
-                                        <i class="fas fa-toggle-on text-success me-1"></i>
-                                        Durasi Nyala (Detik)
-                                    </label>
-                                    <input type="number"
-                                        class="form-control form-control-lg bg-dark text-white border-secondary"
-                                        id="auto-time-on" placeholder="contoh: 10" min="1">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label text-white fw-bold small">
-                                        <i class="fas fa-toggle-off text-danger me-1"></i>
-                                        Durasi Mati (Detik)
-                                    </label>
-                                    <input type="number"
-                                        class="form-control form-control-lg bg-dark text-white border-secondary"
-                                        id="auto-time-off" placeholder="contoh: 5" min="1">
-                                </div>
-                                <div class="col-12 mt-4">
-                                    <button class="btn btn-primary btn-lg w-100 fw-bold mb-2 py-3"
-                                        onclick="saveAutoSettings()">
-                                        <i class="fas fa-play-circle me-2"></i>MULAI JADWAL OTOMATIS
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-lg w-100 fw-bold py-3"
-                                        onclick="stopAutoSettings()">
-                                        <i class="fas fa-stop-circle me-2"></i>HENTIKAN JADWAL OTOMATIS
-                                    </button>
-                                </div>
-                            </div>
+                            {{-- Auto Mode Tab untuk Kipas --}}
+                            <div class="tab-pane fade" id="pills-auto-fan" role="tabpanel">
+                                <div class="text-center py-4">
+                                    <i class="fas fa-microchip fa-3x mb-3 text-primary"></i>
+                                    <h5 class="text-white mb-3">Mode Otomatis Kipas</h5>
+                                    <p class="text-white-50 mb-4">
+                                        Kipas akan diatur otomatis berdasarkan:<br>
+                                        • Suhu lingkungan<br>
+                                        • Deteksi gas LPG<br>
+                                        • Deteksi api
+                                    </p>
 
-                            <div class="alert alert-info mt-3 mb-0"
-                                style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3);">
-                                <small>
-                                    <i class="fas fa-lightbulb me-1"></i>
-                                    <strong>Contoh:</strong> Durasi Nyala 10 detik & Durasi Mati 5 detik = Perangkat akan
-                                    menyala selama 10 detik, kemudian mati selama 5 detik, dan berulang.
-                                </small>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-primary btn-lg py-3 fw-bold" onclick="setFanMode('auto')">
+                                            <i class="fas fa-play-circle me-2"></i>AKTIFKAN MODE OTOMATIS
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-lg py-3 fw-bold"
+                                            onclick="setFanMode('manual')">
+                                            <i class="fas fa-hand-pointer me-2"></i>KEMBALI KE MANUAL
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
