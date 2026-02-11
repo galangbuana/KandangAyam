@@ -150,20 +150,19 @@
                         <div class="area-block">
                             <h6 class="area-title">AREA 1 (DEPAN)</h6>
                             <div class="sensor-grid">
-                                <div class="sensor-box" id="gas-a2-s4"><span>--</span> <small>ppm</small></div>
-                                <div class="sensor-box" id="gas-a2-s3"><span>--</span> <small>ppm</small></div>
-                                <div class="sensor-box" id="gas-a1-s2"><span>--</span> <small>ppm</small></div>
                                 <div class="sensor-box" id="gas-a1-s1"><span>--</span> <small>ppm</small></div>
+                                <div class="sensor-box" id="gas-a1-s2"><span>--</span> <small>ppm</small></div>
+                                <div class="sensor-box" id="gas-a1-s3"><span>--</span> <small>ppm</small></div>
+                                <div class="sensor-box" id="gas-a1-s4"><span>--</span> <small>ppm</small></div>
                             </div>
                         </div>
                         <div class="area-block">
                             <h6 class="area-title">AREA 2 (BELAKANG)</h6>
                             <div class="sensor-grid">
-                                <div class="sensor-box" id="gas-a2-s2"><span>--</span> <small>ppm</small></div>
                                 <div class="sensor-box" id="gas-a2-s1"><span>--</span> <small>ppm</small></div>
-                                <div class="sensor-box" id="gas-a1-s3"><span>--</span> <small>ppm</small></div>
-                                <div class="sensor-box" id="gas-a1-s4"><span>--</span> <small>ppm</small></div>
-
+                                <div class="sensor-box" id="gas-a2-s2"><span>--</span> <small>ppm</small></div>
+                                <div class="sensor-box" id="gas-a2-s3"><span>--</span> <small>ppm</small></div>
+                                <div class="sensor-box" id="gas-a2-s4"><span>--</span> <small>ppm</small></div>
                             </div>
                         </div>
 
@@ -207,9 +206,6 @@
                             style="width: 100%; max-width: 640px; border-radius: 12px;" />
 
                         <div id="fire-overlay" class="fire-overlay">
-                            {{-- <div class="fire-box">
-                                <i class="fas fa-fire fa-3x mb-3"></i>
-                            </div> --}}
                         </div>
                     </div>
 

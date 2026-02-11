@@ -117,9 +117,27 @@ $(document).ready(function () {
         } else if (topic.startsWith("sensor/gas")) {
             const sensorNum = parseInt(topic.replace("sensor/gas", ""));
             const ppm = parseFloat(payload);
-            const area = sensorNum <= 4 ? "area1" : "area2";
-            const sensorId = ((sensorNum - 1) % 4) + 1;
-            updateGasMap(area, sensorId, ppm);
+
+            const gasMap = {
+                8: { area: "area1", pos: 1 }, // kiri atas
+                7: { area: "area1", pos: 2 }, // kanan atas
+                1: { area: "area1", pos: 4 }, // kiri bawah
+                2: { area: "area1", pos: 3 }, // kanan bawah
+
+                6: { area: "area2", pos: 1 }, // kiri atas
+                5: { area: "area2", pos: 2 }, // kanan atas
+                3: { area: "area2", pos: 3 }, // kiri bawah
+                4: { area: "area2", pos: 4 }, // kanan bawah
+            };
+
+            if (gasMap[sensorNum]) {
+                updateGasMap(
+                    gasMap[sensorNum].area,
+                    sensorNum,
+                    gasMap[sensorNum].pos,
+                    ppm,
+                );
+            }
         }
     });
 
@@ -512,28 +530,12 @@ $(document).ready(function () {
         }
     }
 
-    // --- 3. GAS MAP LOGIC ---
     let gasReadings = {};
-
-    function updateGasMap(areaStr, sensorId, ppm) {
-        const sensorMapping = {
-            area1: {
-                1: 3, // gas1 → posisi 3 area1 (kiri bawah)
-                2: 4, // gas2 → posisi 4 area1 (kanan bawah)
-                7: 2, // gas7 → posisi 2 area1 (kanan atas)
-                8: 1, // gas8 → posisi 1 area1 (kiri atas)
-            },
-            area2: {
-                3: 3, // gas3 → posisi 3 area2 (kiri bawah)
-                4: 4, // gas4 → posisi 4 area2 (kanan bawah)
-                5: 2, // gas5 → posisi 2 area2 (kanan atas)
-                6: 1, // gas6 → posisi 1 area2 (kiri atas)
-            },
-        };
-
+    function updateGasMap(areaStr, sensorNum, pos, ppm) {
         const areaCode = areaStr === "area1" ? "a1" : "a2";
-        const mappedSensorId = sensorMapping[areaStr][sensorId];
-        const elementId = `#gas-${areaCode}-s${mappedSensorId}`;
+
+        // id HTML tetap pakai posisi (1-4) supaya rapi di UI
+        const elementId = `#gas-${areaCode}-s${pos}`;
 
         const element = $(elementId);
         element.html(`${ppm} <small>ppm</small>`);
@@ -550,8 +552,11 @@ $(document).ready(function () {
             status = "danger";
         }
 
-        gasReadings[`${areaStr}-${sensorId}`] = {
+        // SIMPAN pakai sensorNum asli (1-8)
+        gasReadings[`gas${sensorNum}`] = {
             area: areaStr,
+            pos: pos,
+            ppm: ppm,
             status: status,
         };
         checkGlobalGasAlert();
