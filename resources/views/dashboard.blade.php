@@ -148,7 +148,7 @@
 
                     <div class="gas-map-container">
                         <div class="area-block">
-                            <h6 class="area-title">AREA 1 (DEPAN)</h6>
+                            <h6 class="area-title">AREA 1</h6>
                             <div class="sensor-grid">
                                 <div class="sensor-box" id="gas-a1-s1"><span>--</span> <small>ppm</small></div>
                                 <div class="sensor-box" id="gas-a1-s2"><span>--</span> <small>ppm</small></div>
@@ -157,7 +157,7 @@
                             </div>
                         </div>
                         <div class="area-block">
-                            <h6 class="area-title">AREA 2 (BELAKANG)</h6>
+                            <h6 class="area-title">AREA 2</h6>
                             <div class="sensor-grid">
                                 <div class="sensor-box" id="gas-a2-s1"><span>--</span> <small>ppm</small></div>
                                 <div class="sensor-box" id="gas-a2-s2"><span>--</span> <small>ppm</small></div>
@@ -181,7 +181,7 @@
                     <div class="device-controls">
                         <button class="device-btn" id="btn-lampu" onclick="openControlModal('lampu', 'Lampu Kandang')">
                             <div class="icon-wrapper"><i class="fas fa-lightbulb"></i></div>
-                            <span class="device-label">Lampu Utama</span>
+                            <span class="device-label">Lampu Kandang</span>
                             <span class="device-status">OFF</span>
                         </button>
 
@@ -201,7 +201,7 @@
                     </div>
 
                     <div class="camera-feed-container">
-                        <img src="http://10.196.50.8:5050/video_feed" alt="CCTV Feed" id="cctv-image"
+                        <img src="http://10.158.188.8:5050/video_feed" alt="CCTV Feed" id="cctv-image"
                             class="img-fluid rounded mt-4 mb-4"
                             style="width: 100%; max-width: 640px; border-radius: 12px;" />
 

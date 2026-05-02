@@ -47,6 +47,56 @@ body {
     padding: 30px;
 }
 
+/* Danger visual layer placeholders
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 999;
+    transition: opacity 0.25s ease;
+}
+
+body::before {
+    background:
+        radial-gradient(
+            circle at 18% 22%,
+            rgba(255, 120, 38, 0.32) 0%,
+            transparent 38%
+        ),
+        radial-gradient(
+            circle at 78% 72%,
+            rgba(255, 30, 30, 0.35) 0%,
+            transparent 44%
+        ),
+        repeating-linear-gradient(
+            -35deg,
+            rgba(30, 5, 0, 0.4) 0px,
+            rgba(30, 5, 0, 0.4) 4px,
+            rgba(0, 0, 0, 0.08) 4px,
+            rgba(0, 0, 0, 0.08) 10px
+        );
+    mix-blend-mode: screen;
+}
+
+body::after {
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(0, 0, 0, 0) 10%,
+            rgba(0, 0, 0, 0.5) 100%
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 2px,
+            rgba(255, 140, 0, 0.08) 2px,
+            rgba(255, 140, 0, 0.08) 3px
+        );
+} */
+
 /* --- ANIMATED BACKGROUND --- */
 .particles {
     position: fixed;
@@ -529,6 +579,201 @@ body {
     font-size: 2rem;
     font-weight: 800;
     margin: 0;
+}
+
+/* --- CHAOS BURN MODE (UI only, activated by danger states) --- */
+body:has(.sensor-box.danger)::before,
+body:has(#fire-overlay[style*="display: block"])::before,
+body:has(#fire-overlay[style*="display: flex"])::before,
+body:has(#fire-overlay[style*="display: inline"])::before {
+    opacity: 1;
+    animation: burn-flicker 0.25s steps(2) infinite;
+}
+
+body:has(.sensor-box.danger)::after,
+body:has(#fire-overlay[style*="display: block"])::after,
+body:has(#fire-overlay[style*="display: flex"])::after,
+body:has(#fire-overlay[style*="display: inline"])::after {
+    opacity: 1;
+}
+
+body:has(.sensor-box.danger) .main-card,
+body:has(#fire-overlay[style*="display: block"]) .main-card,
+body:has(#fire-overlay[style*="display: flex"]) .main-card,
+body:has(#fire-overlay[style*="display: inline"]) .main-card {
+    animation: dashboard-shake 0.18s infinite;
+    filter: contrast(1.16) saturate(1.28);
+}
+
+body:has(.sensor-box.danger) .section-card,
+body:has(.sensor-box.danger) .info-card,
+body:has(#fire-overlay[style*="display: block"]) .section-card,
+body:has(#fire-overlay[style*="display: block"]) .info-card,
+body:has(#fire-overlay[style*="display: flex"]) .section-card,
+body:has(#fire-overlay[style*="display: flex"]) .info-card,
+body:has(#fire-overlay[style*="display: inline"]) .section-card,
+body:has(#fire-overlay[style*="display: inline"]) .info-card {
+    border-color: rgba(255, 111, 0, 0.75);
+    box-shadow:
+        0 0 26px rgba(255, 80, 0, 0.4),
+        inset 0 0 18px rgba(255, 30, 0, 0.18);
+    animation: ember-flicker 1s infinite alternate;
+}
+
+body:has(.sensor-box.danger) .header-title,
+body:has(#fire-overlay[style*="display: block"]) .header-title,
+body:has(#fire-overlay[style*="display: flex"]) .header-title,
+body:has(#fire-overlay[style*="display: inline"]) .header-title {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 238, 211, 1),
+        rgba(255, 140, 72, 1),
+        rgba(255, 66, 66, 1)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+        1px 0 rgba(255, 70, 0, 0.45),
+        -1px 0 rgba(255, 210, 140, 0.35);
+}
+
+body:has(.sensor-box.danger) .sensor-box.warning,
+body:has(.sensor-box.danger) .sensor-box.safe,
+body:has(#fire-overlay[style*="display: block"]) .sensor-box.warning,
+body:has(#fire-overlay[style*="display: block"]) .sensor-box.safe,
+body:has(#fire-overlay[style*="display: flex"]) .sensor-box.warning,
+body:has(#fire-overlay[style*="display: flex"]) .sensor-box.safe,
+body:has(#fire-overlay[style*="display: inline"]) .sensor-box.warning,
+body:has(#fire-overlay[style*="display: inline"]) .sensor-box.safe {
+    filter: grayscale(0.3) sepia(0.25);
+}
+
+body:has(.sensor-box.danger) .sensor-box.danger,
+body:has(#fire-overlay[style*="display: block"]) .sensor-box.danger,
+body:has(#fire-overlay[style*="display: flex"]) .sensor-box.danger,
+body:has(#fire-overlay[style*="display: inline"]) .sensor-box.danger {
+    animation:
+        pulse-danger 0.8s infinite,
+        ember-flicker 0.3s infinite;
+}
+
+body:has(.sensor-box.danger) #gas-alert-message,
+body:has(#fire-overlay[style*="display: block"]) #gas-alert-message,
+body:has(#fire-overlay[style*="display: flex"]) #gas-alert-message,
+body:has(#fire-overlay[style*="display: inline"]) #gas-alert-message {
+    background: linear-gradient(
+        120deg,
+        rgba(255, 40, 40, 0.25),
+        rgba(255, 120, 0, 0.22)
+    );
+    color: #ffd8b8;
+    border-color: #ff6d00;
+    box-shadow:
+        0 0 30px rgba(255, 72, 0, 0.45),
+        inset 0 0 12px rgba(255, 179, 128, 0.25);
+}
+
+body:has(.sensor-box.danger) #cctv-image,
+body:has(#fire-overlay[style*="display: block"]) #cctv-image,
+body:has(#fire-overlay[style*="display: flex"]) #cctv-image,
+body:has(#fire-overlay[style*="display: inline"]) #cctv-image {
+    filter: sepia(0.45) saturate(1.7) hue-rotate(-16deg) contrast(1.18);
+    animation: cctv-chaos 0.25s infinite steps(2);
+}
+
+body:has(.sensor-box.danger) .device-btn,
+body:has(#fire-overlay[style*="display: block"]) .device-btn,
+body:has(#fire-overlay[style*="display: flex"]) .device-btn,
+body:has(#fire-overlay[style*="display: inline"]) .device-btn {
+    background: rgba(36, 10, 3, 0.45);
+    border-color: rgba(255, 108, 53, 0.7);
+}
+
+@keyframes burn-flicker {
+    0% {
+        opacity: 0.62;
+    }
+    100% {
+        opacity: 0.95;
+    }
+}
+
+@keyframes ember-flicker {
+    0% {
+        transform: translate(0, 0);
+    }
+    25% {
+        transform: translate(-1px, 1px);
+    }
+    50% {
+        transform: translate(1px, -1px);
+    }
+    75% {
+        transform: translate(-1px, -1px);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes dashboard-shake {
+    0% {
+        transform: translate(0, 0);
+    }
+    20% {
+        transform: translate(-1px, 1px);
+    }
+    40% {
+        transform: translate(1px, -1px);
+    }
+    60% {
+        transform: translate(-1px, -1px);
+    }
+    80% {
+        transform: translate(1px, 1px);
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes cctv-chaos {
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-2px);
+    }
+    50% {
+        transform: translateX(2px);
+    }
+    75% {
+        transform: translateX(-1px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body:has(.sensor-box.danger) .main-card,
+    body:has(#fire-overlay[style*="display: block"]) .main-card,
+    body:has(#fire-overlay[style*="display: flex"]) .main-card,
+    body:has(#fire-overlay[style*="display: inline"]) .main-card,
+    body:has(.sensor-box.danger) .section-card,
+    body:has(.sensor-box.danger) .info-card,
+    body:has(#fire-overlay[style*="display: block"]) .section-card,
+    body:has(#fire-overlay[style*="display: block"]) .info-card,
+    body:has(#fire-overlay[style*="display: flex"]) .section-card,
+    body:has(#fire-overlay[style*="display: flex"]) .info-card,
+    body:has(#fire-overlay[style*="display: inline"]) .section-card,
+    body:has(#fire-overlay[style*="display: inline"]) .info-card,
+    body:has(.sensor-box.danger) #cctv-image,
+    body:has(#fire-overlay[style*="display: block"]) #cctv-image,
+    body:has(#fire-overlay[style*="display: flex"]) #cctv-image,
+    body:has(#fire-overlay[style*="display: inline"]) #cctv-image {
+        animation: none;
+    }
 }
 
 /* --- MODAL / POP UP STYLING (Cyberpunk Theme) --- */

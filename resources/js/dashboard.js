@@ -1,5 +1,4 @@
 $(document).ready(function () {
-    // Pisahkan status auto mode untuk lampu dan kipas
     window.isAutoModeLampActive = false; // Mode auto untuk LAMPU saja
     window.isAutoModeFanActive = false; // Mode auto untuk KIPAS saja
     window.currentDevice = null; // Menyimpan device yang sedang dibuka
@@ -12,14 +11,13 @@ $(document).ready(function () {
     window.currentServoV = 70; // Initial vertical position
 
     // --- 1. KONEKSI MQTT ---
-    const mqttClient = mqtt.connect("ws://103.150.227.84:8080/mqtt", {
-        username: "pdk",
-        password: "pdk2025",
+    const mqttClient = mqtt.connect("mqtt://10.158.188.8:1884/mqtt", {
+        username: "galang",
+        password: "galang12",
     });
 
     mqttClient.on("connect", function () {
         console.log("✓ Terhubung ke MQTT Broker");
-        console.log("MQTT Broker:", "ws://10.146.45.75:1884/mqtt");
 
         mqttClient.subscribe("sensor/suhu");
         mqttClient.subscribe("sensor/kelembaban");
@@ -35,10 +33,6 @@ $(document).ready(function () {
         mqttClient.subscribe("fan1/speed");
         mqttClient.subscribe("fan2/speed");
         mqttClient.subscribe("relay/1");
-
-        console.log(
-            "✓ Subscribed to all topics including: relay/1, fan1/speed, fan2/speed",
-        );
     });
 
     // Debug: Log semua pesan yang di-publish
@@ -534,7 +528,6 @@ $(document).ready(function () {
     function updateGasMap(areaStr, sensorNum, pos, ppm) {
         const areaCode = areaStr === "area1" ? "a1" : "a2";
 
-        // id HTML tetap pakai posisi (1-4) supaya rapi di UI
         const elementId = `#gas-${areaCode}-s${pos}`;
 
         const element = $(elementId);
@@ -552,7 +545,6 @@ $(document).ready(function () {
             status = "danger";
         }
 
-        // SIMPAN pakai sensorNum asli (1-8)
         gasReadings[`gas${sensorNum}`] = {
             area: areaStr,
             pos: pos,
